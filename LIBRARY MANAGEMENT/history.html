@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Borrowing History</title>
+    <link rel="stylesheet" href="design.css" />
+    <style>
+      /* Modal overlay */
+      #modalOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+      }
+
+      /* Modal styling */
+      #dateModal {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        width: 300px;
+        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+
+      #dateModal h3 {
+        margin-top: 0;
+      }
+
+      #dateModal button {
+        margin: 10px 5px;
+      }
+
+      /* Hide the confirm button by default */
+      #confirmButton {
+        display: none;
+      }
+
+      /* Final confirmation button styling */
+      #finalConfirmButton,
+      #secondConfirmButton {
+        display: none;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Borrowing History</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Issue Date</th>
+            <th>Return Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody">
+          <!-- History rows will be dynamically generated here -->
+        </tbody>
+      </table>
+      <button onclick="goBack()">Back to Main Page</button>
+
+      <!-- Final confirmation buttons -->
+      <button id="finalConfirmButton" onclick="finalConfirmation()">
+        Final Confirm
+      </button>
+      <button id="secondConfirmButton" onclick="secondConfirmation()">
+        Second Confirm
+      </button>
+    </div>
+
+    <!-- Modal overlay with date picker modal inside -->
+    <div id="modalOverlay">
+      <div id="dateModal">
+        <h3>Select Issue Date</h3>
+        <input type="date" id="issueDatePicker" onchange="updateReturnDate()" />
+        <p id="returnDateDisplay">Return Date: Not set</p>
+        <!-- Confirm button hidden initially -->
+        <button id="confirmButton" onclick="confirmDate()">Confirm</button>
+        <button onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+
+    <script>
+      const borrowedBooks =
+        JSON.parse(localStorage.getItem("borrowedBooks")) || [];
+      let selectedBookIndex = null;
+      let confirmedCount = 0;
+
+      // Function to display borrowed books
+      function displayHistory() {
+        const tableBody = document.getElementById("historyTableBody");
+        tableBody.innerHTML = "";
+
+        borrowedBooks.forEach((book, index) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${
+              book.issueDate ||
+              '<button onclick="openDatePicker(' +
+                index +
+                ')">Set Issue Date</button>'
+            }</td>
+            <td>${book.returnDate || "Not set"}</td>
+            <td>${
+              book.issueDate
+                ? "Confirmed"
+                : '<button onclick="confirmBookDate(' +
+                  index +
+                  ')">Confirm</button>'
+            }</td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        // Check if the final confirmation buttons should be enabled
+        checkFinalConfirmation();
+      }
+
+      // Function to open the date picker modal for the selected book
+      function openDatePicker(index) {
+        selectedBookIndex = index;
+        document.getElementById("modalOverlay").style.display = "flex";
+        document.getElementById("issueDatePicker").value = ""; // Reset date picker
+        document.getElementById("returnDateDisplay").innerText =
+          "Return Date: Not set";
+        document.getElementById("confirmButton").style.display = "none"; // Hide confirm button initially
+      }
+
+      // Function to calculate and display the return date based on the selected issue date
+      function updateReturnDate() {
+        const issueDate = document.getElementById("issueDatePicker").value;
+        if (issueDate) {
+          const issueDateObj = new Date(issueDate);
+          const returnDateObj = new Date(issueDateObj);
+          returnDateObj.setDate(issueDateObj.getDate() + 10); // Add 10 days
+
+          // Display the calculated return date
+          document.getElementById(
+            "returnDateDisplay"
+          ).innerText = `Return Date: ${
+            returnDateObj.toISOString().split("T")[0]
+          }`;
+
+          // Show the confirm button after selecting a date
+          document.getElementById("confirmButton").style.display =
+            "inline-block";
+        }
+      }
+
+      // Function to confirm and save the issue and return dates for the selected book
+      function confirmDate() {
+        const issueDate = document.getElementById("issueDatePicker").value;
+        if (issueDate) {
+          const issueDateObj = new Date(issueDate);
+          const returnDateObj = new Date(issueDateObj);
+          returnDateObj.setDate(issueDateObj.getDate() + 10);
+
+          borrowedBooks[selectedBookIndex].issueDate = issueDateObj
+            .toISOString()
+            .split("T")[0];
+          borrowedBooks[selectedBookIndex].returnDate = returnDateObj
+            .toISOString()
+            .split("T")[0];
+
+          localStorage.setItem("borrowedBooks", JSON.stringify(borrowedBooks));
+          document.getElementById("modalOverlay").style.display = "none";
+          confirmedCount++; // Increment confirmed count
+          displayHistory();
+        } else {
+          alert("Please select an Issue Date.");
+        }
+      }
+
+      // Function to check if the final confirmation buttons should be displayed
+      function checkFinalConfirmation() {
+        const finalConfirmButton =
+          document.getElementById("finalConfirmButton");
+
+        if (confirmedCount >= 2) {
+          finalConfirmButton.style.display = "inline-block";
+        }
+      }
+
+      // Final confirmation button action
+      function finalConfirmation() {
+        alert("Final confirmation completed for selected books!");
+        confirmedCount = 0; // Reset confirmation count
+        displayHistory();
+      }
+
+      // Second confirmation button action
+      function secondConfirmation() {
+        alert("Second confirmation completed for selected books!");
+        confirmedCount = 0; // Reset confirmation count
+        displayHistory();
+      }
+
+      // Function to close the modal without saving
+      function closeModal() {
+        document.getElementById("modalOverlay").style.display = "none";
+      }
+
+      // Function to navigate back to the main page
+      function goBack() {
+        window.location.href = "front.html";
+      }
+
+      // Display borrowing history on page load
+      displayHistory();
+
+      // Final confirmation button action
+      function finalConfirmation() {
+        window.location.href = "confirm.html"; // Redirect to confirmation page
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library Management System</title>
+    <link rel="stylesheet" href="design.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Library Management System</h1>
+
+      <!-- Branch Selection -->
+      <div class="branch-selection">
+        <label for="branch">Select Branch:</label>
+        <select id="branch" onchange="displayBooks()">
+          <option value="">--Select Branch--</option>
+          <option value="cse">Computer Science & Engineering</option>
+          <option value="eee">Electronics & Electrical Engineering</option>
+          <option value="ee">Electrical Engineering</option>
+          <option value="ise">Information Science & Engineering</option>
+          <option value="ce">Civil Engineering</option>
+          <option value="aiml">AI & ML</option>
+          <option value="me">Mechanical Engineering</option>
+          <option value="mba">MBA</option>
+        </select>
+      </div>
+
+      <!-- Book Search and List -->
+      <div class="book-search">
+        <input
+          type="text"
+          id="searchBook"
+          placeholder="Search Book by Title"
+          oninput="searchBook()"
+        />
+      </div>
+
+      <!-- Book List -->
+      <div class="book-list">
+        <h2>Books Available</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="bookTableBody">
+            <!-- Book rows will be dynamically generated here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="login-section">
+        <button onclick="location.href='login.html'" class="login-button">
+          Confirmed page
+        </button>
+      </div>
+
+      <!-- Navigation to History Page -->
+      <button onclick="viewHistory()">View Borrowing History</button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
